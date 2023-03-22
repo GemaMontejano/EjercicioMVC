@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
-import Controller.Aula;
-import Controller.AulaDao;
-
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
