@@ -14,7 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 /**
  * Servlet implementation class aulaController
  */
-@WebServlet("/aula/*")
+@WebServlet("/aulas/*")
 public class aulaController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private AulaDao auladao;
