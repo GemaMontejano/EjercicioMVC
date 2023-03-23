@@ -1,0 +1,30 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+	pageEncoding="ISO-8859-1"%>
+<%@taglib uri="http://java.sun.com/jstl/core" prefix="c"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Editar aula</title>
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+	<h1>Editar aula</h1>
+	<form action="./actualizar">
+		<input type="hidden" class="form-control" name="id"
+			value="<c:out value='${aula.id}' />">
+		<div class="form-group">
+			<label for="nombre">Nombre:</label> <input type="text"
+				class="form-control" placeholder="Nombre" name="nombre"
+				value="<c:out value='${aula.nombre}' />">
+		</div>
+		<div class="form-group">
+			<label for="capacidad">Capacidad:</label> <input type="number"
+				class="form-control" placeholder="Capacidad" name="capacidad"
+				value="<c:out value='${aula.capacidad}' />">
+		</div>
+		<button type="submit" class="btn btn-primary">Enviar</button>
+	</form>
+</body>
+</html>
