@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
+import Controller.Aula;
+import Controller.AulaDao;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -14,7 +16,7 @@ import jakarta.servlet.http.HttpServletResponse;
 /**
  * Servlet implementation class aulaController
  */
-@WebServlet("/aulas/*")
+@WebServlet(urlPatterns= {"/aula","/nuevo","/insertar","/borrar","/editar","/actualizar"})
 public class aulaController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private AulaDao auladao;
@@ -33,14 +35,54 @@ public class aulaController extends HttpServlet {
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		String action = request.getServletPath();
 		try {
-			listaAulas(request, response);
-			
-		} catch (Exception ex) {
+			switch (action) {
+			case "/nuevo":
+				System.out.println("Nuevo");
+				nuevaAula(request, response);
+				break;
+			case "/insertar":
+				System.out.println("Insertar");
+				insertarAula(request, response);
+				break;
+			case "/borrar":
+				System.out.println("Borrar");
+				borrarAula(request, response);
+
+				break;
+			case "/editar":
+				System.out.println("Editar");
+				editarAula(request, response);
+				break;
+			case "/actualizar":
+				System.out.println("Actualizar");
+				actualizarAula(request, response);
+
+				break;
+			default:
+				System.out.println("Index");
+
+				listaAulas(request, response);
+				break;
+			}
+		}
+
+		catch (Exception ex) {
 			throw new ServletException(ex);
 		}
 	}
 
+	
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		doGet(request, response);
+	}
 	private void listaAulas(HttpServletRequest request, HttpServletResponse response)
 			throws SQLException, IOException, ServletException {
 
@@ -49,31 +91,42 @@ public class aulaController extends HttpServlet {
 		RequestDispatcher dispatcher = request.getRequestDispatcher("aulas.jsp");
 		dispatcher.forward(request, response);
 	}
+	private void nuevaAula(HttpServletRequest request, HttpServletResponse response)
+			throws SQLException, IOException, ServletException {
+		RequestDispatcher dispatcher = request.getRequestDispatcher("NuevaAula.jsp");
+		dispatcher.forward(request, response);
+	}
+	private void insertarAula(HttpServletRequest request, HttpServletResponse response)
+			throws SQLException, IOException {
+		String nombre = request.getParameter("nombre");
+		int capacidad = Integer.parseInt(request.getParameter("capacidad"));
+		Aula aula = new Aula(0,nombre, capacidad);
+		auladao.addAula(aula);
+		response.sendRedirect("listaAulas");
+	}
+		private void editarAula(HttpServletRequest request, HttpServletResponse response)
+				throws SQLException, ServletException, IOException {
+			int id = Integer.parseInt(request.getParameter("id"));
+			Aula aula = new Aula (0,null,id);
+			RequestDispatcher dispatcher = request.getRequestDispatcher("EditarAula.jsp");
+			request.setAttribute("aula", aula);
+			dispatcher.forward(request, response);
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
-	 *      response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		doGet(request, response);
+		}
+		private void actualizarAula(HttpServletRequest request, HttpServletResponse response)
+				throws SQLException, IOException {
+			int id = Integer.parseInt(request.getParameter("id"));
+			String nombre = request.getParameter("nombre");
+			int capacidad = Integer.parseInt(request.getParameter("capacidad"));
+			Aula aula = new Aula(0,nombre,capacidad);
+			auladao.addAula(aula);
+			response.sendRedirect("./aula");
+		}
+		private void borrarAula(HttpServletRequest request, HttpServletResponse response)
+				throws SQLException, IOException {
+			int id = Integer.parseInt(request.getParameter("id"));
+			auladao.deleteAula(id);
+			response.sendRedirect("aula");
+	}
 	}
 
-	/**
-	 * @see HttpServlet#doPut(HttpServletRequest, HttpServletResponse)
-	 */
-	protected void doPut(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		// TODO Auto-generated method stub
-	}
-
-	/**
-	 * @see HttpServlet#doDelete(HttpServletRequest, HttpServletResponse)
-	 */
-	protected void doDelete(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		// TODO Auto-generated method stub
-	}
-
-}
