@@ -1,132 +1,122 @@
 package Controller;
 
-import java.io.IOException;
-import java.sql.SQLException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
-
-import Controller.Aula;
-import Controller.AulaDao;
-import jakarta.servlet.RequestDispatcher;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
-/**
- * Servlet implementation class aulaController
- */
-@WebServlet(urlPatterns= {"/aula","/nuevo","/insertar","/borrar","/editar","/actualizar"})
-public class aulaController extends HttpServlet {
-	private static final long serialVersionUID = 1L;
-	private AulaDao auladao;
-
-	/**
-	 * @see HttpServlet#HttpServlet()
-	 */
-	public aulaController() {
-		auladao = new AulaDao();
-	}
-
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
-	 *      response)
-	 */
-
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		String action = request.getServletPath();
+public class AulaDao {
+	private String cadenaConexion = "jdbc:mysql://mysql-trifulcas.alwaysdata.net:3306/trifulcas_code";
+	private String usuario = "trifulcas_code";
+	private String password = "TrifulcasForever";
+	private Connection con;
+	public AulaDao() {
 		try {
-			switch (action) {
-			case "/nuevo":
-				System.out.println("Nuevo");
-				nuevaAula(request, response);
-				break;
-			case "/insertar":
-				System.out.println("Insertar");
-				insertarAula(request, response);
-				break;
-			case "/borrar":
-				System.out.println("Borrar");
-				borrarAula(request, response);
-
-				break;
-			case "/editar":
-				System.out.println("Editar");
-				editarAula(request, response);
-				break;
-			case "/actualizar":
-				System.out.println("Actualizar");
-				actualizarAula(request, response);
-
-				break;
-			default:
-				System.out.println("Index");
-
-				listaAulas(request, response);
-				break;
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			con = DriverManager.getConnection(cadenaConexion, usuario, password);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public List<Aula> get() {
+		if (con == null) {
+			System.out.println("Fallo de conexión a la BBDD");
+			return null;
+		}
+		try {
+			Statement stmt = con.createStatement();
+			List<Aula> res = new ArrayList<Aula>();
+			ResultSet rs = stmt.executeQuery("select * from aula");
+			while (rs.next()) {
+				res.add(new Aula(rs.getInt("id"), rs.getString("nombre"), rs.getInt("capacidad")));
 			}
-		}
-
-		catch (Exception ex) {
-			throw new ServletException(ex);
+			return res;
+		} catch (Exception ex) {
+			System.out.println("Error al obtener la lista de aulas");
+			System.out.println(ex.getMessage());
+			return null;
 		}
 	}
-
+	public Aula getById(int id) {
+		if (con == null) {
+			System.out.println("Fallo de conexión a la BBDD");
+			return null;
+		}
+		try {
+			PreparedStatement ps = con.prepareStatement("select * from aula where id=?");
+			ps.setInt(1, id);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				return new Aula(rs.getInt("id"), rs.getString("nombre"), rs.getInt("capacidad"));
+			}
+			System.out.println("No existe ninguna aula con el id " + id);
+			return null;
+		} catch (Exception ex) {
+			System.out.println("Error al obtener el aula");
+			System.out.println(ex.getMessage());
+			return null;
+		}
+	}
+	public Aula addAula(Aula aula) {
+		if (con == null) {
+			System.out.println("Fallo de conexión a la BBDD");
+			return null;
+		}
+		try {
+			PreparedStatement ps = con.prepareStatement("insert into aula (nombre, capacidad) values(?,?)",
+					Statement.RETURN_GENERATED_KEYS);
+			ps.setString(1, aula.getNombre());
+			ps.setInt(2, aula.getCapacidad());
+			ps.executeUpdate();
+			ResultSet rs = ps.getGeneratedKeys();
+			long last_id = 0;
+			if (rs.next()) {
+				last_id = rs.getLong(1);
+			}
+			int id = (int) last_id;
+			return new Aula(id, aula.getNombre(), aula.getCapacidad());
+		} catch (Exception ex) {
+			System.out.println("Error al añadir el aula");
+			System.out.println(ex.getMessage());
+			return null;
+		}
+	}
+	public Aula updateAula(int id, Aula aula) {
+		if (con == null) {
+			System.out.println("Fallo de conexión a la BBDD");
+			return null;
+		}
+		try {
+			PreparedStatement ps = con.prepareStatement("update aula set nombre = ? , set capacidad = ? where id = ?");
+			ps.setString(1, aula.getNombre());
+			ps.setInt(2, aula.getCapacidad());
+			ps.setInt(3, id);
+			ps.executeUpdate();
+			return aula;
+		} catch (Exception ex) {
+			System.out.println("Error al hacer update al aula");
+			System.out.println(ex.getMessage());
+			return null;
+		}
+	}
+	public boolean deleteAula(int id) {
+		if (con == null) {
+			System.out.println("Fallo de conexión a la BBDD");
+			return false;
+		}
+		try {
+			PreparedStatement ps = con.prepareStatement("delete from aula WHERE id = ?");
+			ps.setInt(1, id);
+			return ps.executeUpdate() == 1;
+		} catch (Exception ex) {
+			System.out.println("Error al borrar el aula");
+			System.out.println(ex.getMessage());
+			return false;
+		}
+		
+	}
 	
-
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
-	 *      response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		doGet(request, response);
 	}
-	private void listaAulas(HttpServletRequest request, HttpServletResponse response)
-			throws SQLException, IOException, ServletException {
-
-		List<Aula> aulas = auladao.get();
-		request.setAttribute("aula", aulas);
-		RequestDispatcher dispatcher = request.getRequestDispatcher("aulas.jsp");
-		dispatcher.forward(request, response);
-	}
-	private void nuevaAula(HttpServletRequest request, HttpServletResponse response)
-			throws SQLException, IOException, ServletException {
-		RequestDispatcher dispatcher = request.getRequestDispatcher("NuevaAula.jsp");
-		dispatcher.forward(request, response);
-	}
-	private void insertarAula(HttpServletRequest request, HttpServletResponse response)
-			throws SQLException, IOException {
-		String nombre = request.getParameter("nombre");
-		int capacidad = Integer.parseInt(request.getParameter("capacidad"));
-		Aula aula = new Aula(0,nombre, capacidad);
-		auladao.addAula(aula);
-		response.sendRedirect("listaAulas");
-	}
-		private void editarAula(HttpServletRequest request, HttpServletResponse response)
-				throws SQLException, ServletException, IOException {
-			int id = Integer.parseInt(request.getParameter("id"));
-			Aula aula = new Aula (0,null,id);
-			RequestDispatcher dispatcher = request.getRequestDispatcher("EditarAula.jsp");
-			request.setAttribute("aula", aula);
-			dispatcher.forward(request, response);
-
-		}
-		private void actualizarAula(HttpServletRequest request, HttpServletResponse response)
-				throws SQLException, IOException {
-			int id = Integer.parseInt(request.getParameter("id"));
-			String nombre = request.getParameter("nombre");
-			int capacidad = Integer.parseInt(request.getParameter("capacidad"));
-			Aula aula = new Aula(0,nombre,capacidad);
-			auladao.addAula(aula);
-			response.sendRedirect("./aula");
-		}
-		private void borrarAula(HttpServletRequest request, HttpServletResponse response)
-				throws SQLException, IOException {
-			int id = Integer.parseInt(request.getParameter("id"));
-			auladao.deleteAula(id);
-			response.sendRedirect("aula");
-	}
-	}
-
